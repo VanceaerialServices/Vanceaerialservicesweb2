@@ -1,0 +1,6 @@
+assets/video/*.MP4
+!assets/video/web/
+!assets/video/web/*.mp4
+
+.DS_Store
+Thumbs.db
