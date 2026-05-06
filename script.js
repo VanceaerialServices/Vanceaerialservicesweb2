@@ -27,7 +27,6 @@ if ("IntersectionObserver" in window && reveals.length) {
   reveals.forEach((item) => item.classList.add("in-view"));
 }
 
-// Conversion upgrades: sticky mobile CTA + visible quote path from every page.
 const stickyCta = document.createElement("div");
 stickyCta.className = "sticky-mobile-cta";
 stickyCta.innerHTML = `
@@ -63,20 +62,31 @@ conversionStyles.textContent = `
     font-weight: 800;
     color: #fff;
   }
-  .sticky-mobile-cta a:first-child {
-    background: rgba(255,255,255,0.12);
-  }
-  .sticky-mobile-cta a:last-child {
-    background: linear-gradient(135deg, #0e5bb5 0%, #2e8eff 100%);
-  }
+  .sticky-mobile-cta a:first-child { background: rgba(255,255,255,0.12); }
+  .sticky-mobile-cta a:last-child { background: linear-gradient(135deg, #0e5bb5 0%, #2e8eff 100%); }
   .quote-helper {
-    margin-top: 1rem;
+    margin-bottom: 1rem;
     padding: 1rem;
     border-radius: 16px;
     background: rgba(14, 91, 181, 0.08);
     color: #132235;
   }
   .quote-helper strong { display: block; margin-bottom: 0.35rem; }
+  .estimate-box {
+    margin-top: 1rem;
+    padding: 1.2rem;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(14,91,181,.1), rgba(45,140,255,.12));
+    border: 1px solid rgba(14,91,181,.18);
+  }
+  .estimate-box strong {
+    display: block;
+    font-size: 2rem;
+    line-height: 1;
+    margin: .35rem 0;
+    color: #083e84;
+  }
+  .estimate-note { color: #566579; font-size: .95rem; }
   @media (max-width: 760px) {
     body { padding-bottom: 5.5rem; }
     .sticky-mobile-cta { display: grid; }
@@ -84,11 +94,43 @@ conversionStyles.textContent = `
 `;
 document.head.appendChild(conversionStyles);
 
-// Light client-side form enhancement for Netlify forms.
 const quoteForm = document.querySelector('form[name="quote-request"]');
 if (quoteForm) {
   const helper = document.createElement("div");
   helper.className = "quote-helper";
   helper.innerHTML = "<strong>Fastest way to get quoted:</strong> Include the property address, preferred date, and whether you need photos, video, or both.";
   quoteForm.prepend(helper);
+}
+
+const estimator = document.querySelector("[data-quote-estimator]");
+if (estimator) {
+  const service = estimator.querySelector('[name="estimateService"]');
+  const deliverables = estimator.querySelector('[name="estimateDeliverables"]');
+  const urgency = estimator.querySelector('[name="estimateUrgency"]');
+  const output = estimator.querySelector("[data-estimate-output]");
+  const note = estimator.querySelector("[data-estimate-note]");
+
+  const ranges = {
+    realEstate: 199,
+    construction: 349,
+    land: 299,
+    commercial: 499
+  };
+
+  const calculate = () => {
+    let base = ranges[service.value] || 199;
+    if (deliverables.value === "photoVideo") base += 150;
+    if (deliverables.value === "videoOnly") base += 125;
+    if (deliverables.value === "premium") base += 300;
+    if (urgency.value === "rush") base += 100;
+    if (urgency.value === "recurring") base = Math.max(base - 75, 199);
+    const high = base + 175;
+    output.textContent = `$${base.toLocaleString()}–$${high.toLocaleString()}+`;
+    note.textContent = urgency.value === "recurring"
+      ? "Recurring progress work can usually be packaged at a better per-visit rate."
+      : "Final pricing depends on location, flight time, editing, property size, and FAA/site restrictions.";
+  };
+
+  [service, deliverables, urgency].forEach((field) => field.addEventListener("change", calculate));
+  calculate();
 }
